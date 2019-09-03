@@ -1,0 +1,16 @@
+{
+  "name": "kintai",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "tosaka-n",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "dotenv": "^8.1.0",
+    "hack-spirit": "git+https://github.com/aHirokiKumamoto/hack-spirit.git",
+    "puppeteer": "^1.19.0"
+  }
+}
