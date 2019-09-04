@@ -2,12 +2,13 @@ const puppeteer = require("puppeteer");
 const nodeConfig = require("dotenv").config();
 const crypto = require('crypto');
 const algorithm = 'aes-256-cbc';
+const ts = require("./lib/teamspirits");
+
 require('dotenv').config();
 const env = process.env;
 
 const loginUrl = "https://teamspirit.cloudforce.com/";
-const taikin = "#btnEtInput";
-const syussha = "#btnStInput"
+
 function decrypt(text) {
   const decipher = crypto.createDecipher(algorithm, env.key)
   let dec = decipher.update(text, 'base64', 'utf8')
@@ -15,29 +16,30 @@ function decrypt(text) {
   return dec;
 }
 
-(async () => {
+async function init() {
+  let status = process.argv[2] ? process.argv[2].toLocaleLowerCase() : null;
+  if (status != "in" && status != "out") {
+    throw Error("set your status IN or OUT");
+  }
+  console.log(`status to ${status}`);
   const pass = decrypt(env.password);
-  console.log(env.username);
+  const user = env.username;
   const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.goto(loginUrl, { waitUntil: "load" });
-  await page.waitFor('#Login');
-  await page.type('#username', env.username);
-  await page.type('#password', pass);
-  await page.screenshot({ path: 'screenshot0.png', fullPage: true });
-  await page.click('#Login');
-  await page.waitForNavigation({ waitUntil: "load" });
+  if (pass == null) {
+    throw Error("please set your pass");
+  } else if (user == null) {
+    throw Error("please set your user");
+  }
+  const page = await ts.login(loginUrl, user, pass);
   await page.waitFor("iframe");
-  const frames = await page.frames();
-  await frames[1].waitForSelector("#btnEtInput");
-
-  const taikinButton = await frames[1].$(taikin);
-  const syusshaButton = await frames[1].$(syussha);
-  console.log(await (await syusshaButton.getProperty("title")).jsonValue());
-  console.log(await (await taikinButton.getProperty("title")).jsonValue());
-  // await (await frames[1].$("#btnEtInput")).click();
-  await page.screenshot({ path: 'screenshot1.png', fullPage: true });
-  // await page.waitFor('div#btnEtInput');
-
+  const frames = page.frames();
+  await ts.timeRecorder(page, frames[1], status);
   await browser.close();
-})().catch(e => { console.error(e); process.exit() });
+  return status;
+}
+
+(async () => {
+  const status = await init();
+  console.log(`change to ${status}`)
+  process.exit();
+})().catch(e => { console.error(e) });

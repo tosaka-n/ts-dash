@@ -9,4 +9,6 @@
   2. save to .env `key=123456789`
   3. convert your password `node encrypt [your pass]`
   4. save your pass to .env `password=hogefuga`
-2. 
+2. change your status
+  - workin: `npm run IN`
+  - workout: `npm run OUT`
