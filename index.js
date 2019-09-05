@@ -16,7 +16,7 @@ function decrypt(text) {
   return dec;
 }
 
-async function init() {
+module.exports.init = async () => {
   let status = process.argv[2] ? process.argv[2].toLocaleLowerCase() : null;
   if (status != "in" && status != "out") {
     throw Error("set your status IN or OUT");
@@ -39,7 +39,7 @@ async function init() {
 }
 
 (async () => {
-  const status = await init();
+  const status = await this.init();
   console.log(`change to ${status}`)
   process.exit();
-})().catch(e => { console.error(e) });
+})().catch(e => { console.error(e); process.exit(1) });
