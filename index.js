@@ -16,7 +16,7 @@ function decrypt(text) {
   return dec;
 }
 
-async function init() {
+module.exports.init = async () => {
   let status = process.argv[2] ? process.argv[2].toLocaleLowerCase() : null;
   if (status != "in" && status != "out") {
     throw Error("set your status IN or OUT");
@@ -31,15 +31,13 @@ async function init() {
     throw Error("please set your user");
   }
   const page = await ts.login(loginUrl, user, pass);
-  await page.waitFor("iframe");
-  const frames = page.frames();
-  await ts.timeRecorder(page, frames[1], status);
+  await ts.timeRecorder(page, status);
   await browser.close();
   return status;
 }
 
 (async () => {
-  const status = await init();
-  console.log(`change to ${status}`)
+  const status = await this.init();
+  console.log(`change status: ${status}`)
   process.exit();
-})().catch(e => { console.error(e) });
+})().catch(e => { console.error(e); process.exit(1) });
