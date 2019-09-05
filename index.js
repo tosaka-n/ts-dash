@@ -40,6 +40,6 @@ module.exports.init = async () => {
 
 (async () => {
   const status = await this.init();
-  console.log(`change to ${status}`)
+  console.log(`change status: ${status}`)
   process.exit();
 })().catch(e => { console.error(e); process.exit(1) });
