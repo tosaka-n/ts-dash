@@ -17,7 +17,6 @@ function decrypt(text) {
 }
 
 module.exports.init = async () => {
-  console.time("log");
   let status = process.argv[2] ? process.argv[2].toLocaleLowerCase() : null;
   if (status != "in" && status != "out") {
     throw Error("set your status IN or OUT");
@@ -34,7 +33,6 @@ module.exports.init = async () => {
   const page = await ts.login(loginUrl, user, pass);
   await ts.timeRecorder(page, status);
   await browser.close();
-  console.timeEnd("log");
   return status;
 }
 
