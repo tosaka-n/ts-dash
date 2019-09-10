@@ -1,13 +1,42 @@
+#!/usr/bin/env node
+'use strict'
+
+const program = require('commander')
 const puppeteer = require("puppeteer");
 const nodeConfig = require("dotenv").config();
 const crypto = require('crypto');
 const algorithm = 'aes-256-cbc';
 const ts = require("./lib/teamspirits");
 
+
 require('dotenv').config();
 const env = process.env;
 
 const loginUrl = "https://teamspirit.cloudforce.com/";
+async function handler(command, options) {
+  try {
+    await init(command.name());
+    console.log(`ok, now punch ${command.name()}`)
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
+  } finally {
+    process.exit(0);
+  }
+}
+
+program
+  .command('in')
+  .description('punch in teamspirit')
+  .action(handler);
+program
+  .command('out')
+  .description('punch out teamspirit')
+  .action(handler);
+program
+  .option('-u, --user <value>', 'user name', String)
+  .option('-p, --password <value>', 'user pass', String)
+  .parse(process.argv);
 
 function decrypt(text) {
   const decipher = crypto.createDecipher(algorithm, env.key)
@@ -15,9 +44,7 @@ function decrypt(text) {
   dec += decipher.final('utf8');
   return dec;
 }
-
-module.exports.init = async () => {
-  let status = process.argv[2] ? process.argv[2].toLocaleLowerCase() : null;
+async function init(status) {
   if (status != "in" && status != "out") {
     throw Error("set your status IN or OUT");
   }
@@ -36,8 +63,4 @@ module.exports.init = async () => {
   return status;
 }
 
-(async () => {
-  const status = await this.init();
-  console.log(`change status: ${status}`)
-  process.exit();
-})().catch(e => { console.error(e); process.exit(1) });
+module.exports.init = init;

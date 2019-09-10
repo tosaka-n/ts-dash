@@ -1,16 +1,20 @@
 {
-  "name": "kintai",
+  "name": "ts-dash",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "bin": {
+    "ts-dash": "index.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "in": "node index IN",
-    "out": "node index OUT"
+    "in": "node index in",
+    "out": "node index out"
   },
   "author": "tosaka-n",
   "license": "UNLICENSED",
   "dependencies": {
+    "commander": "^3.0.1",
     "dotenv": "^8.1.0",
     "hack-spirit": "git+https://github.com/aHirokiKumamoto/hack-spirit.git",
     "puppeteer": "^1.19.0"
