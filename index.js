@@ -15,7 +15,9 @@ const env = process.env;
 const loginUrl = "https://teamspirit.cloudforce.com/";
 async function handler(command, options) {
   try {
+    console.time("log");
     await init(command.name());
+    console.timeEnd("log");
     console.log(`ok, now punch ${command.name()}`)
   } catch (e) {
     console.error(e);
