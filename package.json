@@ -9,7 +9,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "in": "node index in",
-    "out": "node index out"
+    "out": "node index out",
+    "pass": "node index pass"
   },
   "author": "tosaka-n",
   "license": "UNLICENSED",

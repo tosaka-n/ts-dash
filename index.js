@@ -4,8 +4,7 @@
 const program = require('commander')
 const puppeteer = require("puppeteer");
 const nodeConfig = require("dotenv").config();
-const crypto = require('crypto');
-const algorithm = 'aes-256-cbc';
+const { encrypt, decrypt } = require("./encrypt");
 const ts = require("./lib/teamspirits");
 
 
@@ -26,7 +25,17 @@ async function handler(command, options) {
     process.exit(0);
   }
 }
-
+function passHandler(str) {
+  if (process.env.key == null || process.env.key === "") {
+    console.log("please set key\nkey=hogefuga ts-dash pass yourpassword")
+    return;
+  }
+  console.log(str)
+  console.log(`key: ${process.env.key}`)
+  console.log(`encrypt: ${encrypt(str)}`);
+  console.log(`decrypt: ${decrypt(encrypt(str.toString()))}`);
+  return;
+}
 program
   .command('in')
   .description('punch in teamspirit')
@@ -36,16 +45,14 @@ program
   .description('punch out teamspirit')
   .action(handler);
 program
+  .command('pass')
+  .description('convert password')
+  .action(passHandler);
+program
   .option('-u, --user <value>', 'user name', String)
   .option('-p, --password <value>', 'user pass', String)
   .parse(process.argv);
 
-function decrypt(text) {
-  const decipher = crypto.createDecipher(algorithm, env.key)
-  let dec = decipher.update(text, 'base64', 'utf8')
-  dec += decipher.final('utf8');
-  return dec;
-}
 async function init(status) {
   if (status != "in" && status != "out") {
     throw Error("set your status IN or OUT");
@@ -57,7 +64,7 @@ async function init(status) {
   if (pass == null) {
     throw Error("please set your pass");
   } else if (user == null) {
-    throw Error("please set your user");
+    throw Error("please set your username");
   }
   const page = await ts.login(loginUrl, user, pass);
   await ts.timeRecorder(page, status);
