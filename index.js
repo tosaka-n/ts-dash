@@ -1,15 +1,14 @@
 #!/usr/bin/env node
 'use strict'
-
-const program = require('commander')
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "./.env") });
+const commander = require('commander')
 const puppeteer = require("puppeteer");
-const nodeConfig = require("dotenv").config();
 const { encrypt, decrypt } = require("./encrypt");
 const ts = require("./lib/teamspirits");
-
-
-require('dotenv').config();
-const env = process.env;
+const fs = require("fs");
+const util = require("util");
+const writeFile = util.promisify(fs.writeFile);
 
 const loginUrl = "https://teamspirit.cloudforce.com/";
 async function handler(command, options) {
@@ -25,44 +24,61 @@ async function handler(command, options) {
     process.exit(0);
   }
 }
-function passHandler(str) {
-  if (process.env.key == null || process.env.key === "") {
-    console.log("please set key\nkey=hogefuga ts-dash pass yourpassword")
+async function passHandler(command, options) {
+  if (program.username == null || program.key == null || program.password == null) {
+    console.log("please set options\nts-dash password -p yourpassword -u yourusername -k any-key")
     return;
   }
-  console.log(str)
-  console.log(`key: ${process.env.key}`)
-  console.log(`encrypt: ${encrypt(str)}`);
-  console.log(`decrypt: ${decrypt(encrypt(str.toString()))}`);
+  const pass = [
+    `username=${program.username}`,
+    `key=${program.key}`,
+    `password=${encrypt(program.password, program.key.toString())}`
+  ];
+  console.log(pass.join("\n"))
+  await writeFile(path.join(__dirname, "./.env"), pass.join("\n"))
   return;
 }
+const program = new commander.Command();
 program
   .command('in')
   .description('punch in teamspirit')
   .action(handler);
+
 program
   .command('out')
   .description('punch out teamspirit')
   .action(handler);
+
+program
+  .command("show")
+  .description('show your infomation')
+  .action(() => {
+    console.log(`user=${process.env.user}`);
+    console.log(`pass=${process.env.pass}`);
+    console.log(`key=${process.env.key}`);
+  });
+
 program
   .command('pass')
   .description('convert password')
   .action(passHandler);
 program
-  .option('-u, --user <value>', 'user name', String)
+  .option('-u, --username <value>', 'user name', String)
   .option('-p, --password <value>', 'user pass', String)
-  .parse(process.argv);
+  .option('-k, --key <value>', 'encrypt key', String);
+
+program.parse(process.argv);
 
 async function init(status) {
   if (status != "in" && status != "out") {
     throw Error("set your status IN or OUT");
   }
   console.log(`status to ${status}`);
-  const pass = decrypt(env.password);
-  const user = env.username;
+  const pass = decrypt(process.env.password, process.env.key);
+  const user = process.env.username;
   const browser = await puppeteer.launch();
   if (pass == null) {
-    throw Error("please set your pass");
+    throw Error("please set your password");
   } else if (user == null) {
     throw Error("please set your username");
   }
