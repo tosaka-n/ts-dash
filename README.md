@@ -1,5 +1,5 @@
-# kintai_hack
-
+# ts-dash
+punch in/out [teamspirit](https://teamspirit.cloudforce.com/) from cli
 ## Usage
 1. git clone && npm i
 2. `npm link`
