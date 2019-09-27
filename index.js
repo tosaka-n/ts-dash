@@ -53,8 +53,8 @@ program
   .command("show")
   .description('show your infomation')
   .action(() => {
-    console.log(`user=${process.env.user}`);
-    console.log(`pass=${process.env.pass}`);
+    console.log(`user=${process.env.username}`);
+    console.log(`pass=${process.env.password}`);
     console.log(`key=${process.env.key}`);
   });
 
