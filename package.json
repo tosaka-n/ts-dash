@@ -17,7 +17,6 @@
   "dependencies": {
     "commander": "^3.0.1",
     "dotenv": "^8.1.0",
-    "hack-spirit": "git+https://github.com/aHirokiKumamoto/hack-spirit.git",
     "puppeteer": "^1.19.0"
   }
 }
