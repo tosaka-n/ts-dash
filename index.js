@@ -9,6 +9,8 @@ const ts = require("./lib/teamspirits");
 const fs = require("fs");
 const util = require("util");
 const writeFile = util.promisify(fs.writeFile);
+const fetch = require("node-fetch");
+const slackPostURL = "https://slack.com/api/chat.postMessage";
 
 const loginUrl = "https://teamspirit.cloudforce.com/";
 async function handler(command, options) {
@@ -34,6 +36,13 @@ async function passHandler(command, options) {
     `key=${program.key}`,
     `password=${encrypt(program.password, program.key.toString())}`
   ];
+  if (program.HUBOT_SLACK_TOKEN) {
+    if (program.channel == null) {
+      console.log("please set options\nts-dash password -p yourpassword -u yourusername -k any-key --HUBOT_SLACK_TOKEN xoxo-your-token -c --channel")
+    }
+    pass.push(`HUBOT_SLACK_TOKEN=${encrypt(program.HUBOT_SLACK_TOKEN, program.key.toString())}`)
+    pass.push(`channel=${program.channel}`);
+  }
   console.log(pass.join("\n"))
   await writeFile(path.join(__dirname, "./.env"), pass.join("\n"))
   return;
@@ -56,6 +65,8 @@ program
     console.log(`user=${process.env.username}`);
     console.log(`pass=${process.env.password}`);
     console.log(`key=${process.env.key}`);
+    console.log(`HUBOT_SLACK_TOKEN=${process.env.HUBOT_SLACK_TOKEN}`);
+    console.log(`channel=${process.env.channel}`);
   });
 
 program
@@ -65,11 +76,67 @@ program
 program
   .option('-u, --username <value>', 'user name', String)
   .option('-p, --password <value>', 'user pass', String)
-  .option('-k, --key <value>', 'encrypt key', String);
+  .option('-k, --key <value>', 'encrypt key', String)
+  .option('-t, --HUBOT_SLACK_TOKEN <value>', 'HUBOT_SLACK_TOKEN', String)
+  .option('-c, --channel <value>', 'post channel', String);
 
 program.parse(process.argv);
 
+function formatTime(date) {
+  return `${("0" + date.getHours()).substr(-2, 2)}:${("0" + date.getMinutes()).substr(-2, 2)}`
+}
+
+function reminderText(timestr) {
+  const [h, m] = timestr.split(':');
+  let lefttime = "";
+  let leftHour = Number(h) + 9;
+  while (leftHour > 24) {
+    leftHour -= 24;
+  }
+  lefttime = `/remind here "go home" at ${leftHour}:${m}`;
+  return lefttime;
+}
+
+async function post2Slack(status, date) {
+  if (!process.env.HUBOT_SLACK_TOKEN || !process.env.channel) {
+    return;
+  }
+  const time = formatTime(date);
+  const HUBOT_SLACK_TOKEN = process.env.HUBOT_SLACK_TOKEN;
+  const channel = process.env.channel;
+  let message = `punch ${status} at ${time}\n`;
+  let text = "";
+  if (status == "in") {
+    text = `Hello\n${message}${reminderText(time)}`;
+  } else {
+    text = `See you tomorrow, bye.\n${message}`;
+  }
+  const json = {
+    token: HUBOT_SLACK_TOKEN,
+    channel,
+    text,
+    as_user: true
+  }
+  try {
+    const headers = {
+      'Authorization': `Bearer ${HUBOT_SLACK_TOKEN}`,
+      "Content-type": "application/json"
+    };
+    const res = await fetch(slackPostURL, {
+      headers,
+      method: 'POST',
+      body: JSON.stringify(json),
+    });
+    const responseJson = await res.json();
+    console.log(responseJson);
+  } catch (e) {
+    console.error(e);
+  }
+  return;
+}
+
 async function init(status) {
+  const date = new Date();
   if (status != "in" && status != "out") {
     throw Error("set your status IN or OUT");
   }
@@ -85,6 +152,7 @@ async function init(status) {
   const page = await ts.login(loginUrl, user, pass);
   await ts.timeRecorder(page, status);
   await browser.close();
+  await post2Slack(status, date);
   return status;
 }
 
