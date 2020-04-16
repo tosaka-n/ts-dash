@@ -4,7 +4,7 @@ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "./.env") });
 const commander = require('commander')
 const puppeteer = require("puppeteer");
-const { encrypt, decrypt } = require("./encrypt");
+const ch = require('crypto-simple');
 const ts = require("./lib/teamspirits");
 const fs = require("fs");
 const util = require("util");
@@ -13,7 +13,8 @@ const fetch = require("node-fetch");
 const slackPostURL = "https://slack.com/api/chat.postMessage";
 
 const loginUrl = "https://teamspirit.cloudforce.com/";
-async function handler(command, options) {
+
+async function punchHandler(command, options) {
   try {
     console.time("log");
     await init(command.name());
@@ -26,44 +27,48 @@ async function handler(command, options) {
     process.exit(0);
   }
 }
+
 async function passHandler(command, options) {
   if (program.username == null || program.key == null || program.password == null) {
     console.log("please set options\nts-dash password -p yourpassword -u yourusername -k any-key")
     return;
   }
+  ch.key = program.key;
   const pass = [
     `username=${program.username}`,
     `key=${program.key}`,
-    `password=${encrypt(program.password, program.key.toString())}`
+    `password=${ch.encrypt(program.password)}`
   ];
   if (program.HUBOT_SLACK_TOKEN) {
     if (program.channel == null) {
       console.log("please set options\nts-dash password -p yourpassword -u yourusername -k any-key --HUBOT_SLACK_TOKEN xoxo-your-token -c --channel")
     }
-    pass.push(`HUBOT_SLACK_TOKEN=${encrypt(program.HUBOT_SLACK_TOKEN, program.key.toString())}`)
+    pass.push(`HUBOT_SLACK_TOKEN=${program.HUBOT_SLACK_TOKEN}`)
     pass.push(`channel=${program.channel}`);
   }
   console.log(pass.join("\n"))
   await writeFile(path.join(__dirname, "./.env"), pass.join("\n"))
   return;
 }
+
 const program = new commander.Command();
 program
   .command('in')
   .description('punch in teamspirit')
-  .action(handler);
+  .action(punchHandler);
 
 program
   .command('out')
   .description('punch out teamspirit')
-  .action(handler);
+  .action(punchHandler);
 
 program
   .command("show")
   .description('show your infomation')
   .action(() => {
+    ch.key = process.env.key;
     console.log(`user=${process.env.username}`);
-    console.log(`pass=${process.env.password}`);
+    console.log(`pass=${ch.decrypt(process.env.password)}`);
     console.log(`key=${process.env.key}`);
     console.log(`HUBOT_SLACK_TOKEN=${process.env.HUBOT_SLACK_TOKEN}`);
     console.log(`channel=${process.env.channel}`);
@@ -76,7 +81,7 @@ program
 program
   .option('-u, --username <value>', 'user name', String)
   .option('-p, --password <value>', 'user pass', String)
-  .option('-k, --key <value>', 'encrypt key', String)
+  .option('-k, --key <value>', 'encrypt key. the key must be 256 bits (32 characters)', String)
   .option('-t, --HUBOT_SLACK_TOKEN <value>', 'HUBOT_SLACK_TOKEN', String)
   .option('-c, --channel <value>', 'post channel', String);
 
@@ -141,7 +146,8 @@ async function init(status) {
     throw Error("set your status IN or OUT");
   }
   console.log(`status to ${status}`);
-  const pass = decrypt(process.env.password, process.env.key);
+  ch.key = process.env.key;
+  const pass = ch.decrypt(process.env.password, process.env.key);
   const user = process.env.username;
   const browser = await puppeteer.launch();
   if (pass == null) {

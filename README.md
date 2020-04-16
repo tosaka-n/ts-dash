@@ -5,7 +5,7 @@ punch in/out [teamspirit](https://teamspirit.cloudforce.com/) from cli
 1. git clone && npm i
 2. `npm link`
 3. convert your password with any key
-   - `ts-dash pass -u username -p password -k any-crypto-key(ex. aaabbbccc)`
+   - `ts-dash pass -u username -p password -k any-crypto-key(32 characters)`
    - You can show status `ts-dash show`
    - _Optional_
      - If you want to post to Slack
