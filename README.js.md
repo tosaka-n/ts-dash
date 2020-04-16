@@ -15,7 +15,7 @@ _npmを用いるため、npmを先にインストールしてください_
 4. teamspiritのユーザー名、任意の暗号キー(適当な文字列 ex.aaabbbccc)、
   暗号化されたパスワードを保存します
   (ログイン情報は.envファイルに保存されます)
-   - `$ ts-dash pass -u username -p password -k any-crypto-key`
+   - `$ ts-dash pass -u username -p password -k any-crypto-key(32 characters)`
    - 保存された情報を確認するためにはshowコマンドをつかいます
      - `$ts-dash show`
    - _Optional_
@@ -36,6 +36,6 @@ _npmを用いるため、npmを先にインストールしてください_
   - pass: ログイン/Slackへの投稿情報を保存する
       - -u, --username `<value>`           : ユーザー名
       - -p, --password `<value>`           : パスワード
-      - -k, --key `<value>`                : 任意の暗号キー(aaaでもhogehogeでも)
+      - -k, --key `<value>`                : 任意の暗号キー(32文字)
       - -t, --HUBOT_SLACK_TOKEN `<value>`
       - -c, --channel `<value>`            : 投稿先チャンネルID
